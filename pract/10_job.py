@@ -1,33 +1,52 @@
-def schedule_jobs(jobs):
-    sorted_jobs = sorted(jobs, key=lambda j: j['deadline'])
-    completion_time = 0
-    total_lateness = 0
+def max_profit_job_sequence(arr, t):
+    n = len(arr)
 
-    for job in sorted_jobs:
-        completion_time += job['processing_time']
-        lateness = max(0, completion_time - job['deadline'])
-        total_lateness += lateness
+    # Sort all jobs according to decreasing order of profit
+    arr.sort(key=lambda x: x[2], reverse=True)
 
-    return total_lateness
+    # To keep track of free time slots
+    result = [False] * t
+
+    # To store result (Sequence of jobs)
+    job = ['-1'] * t
+
+    # Iterate through all given jobs
+    for i in range(n):
+
+        # Find a free slot for this job
+        # (Note that we start from the last possible slot)
+        for j in range(min(t - 1, arr[i][1] - 1), -1, -1):
+
+            # Free slot found
+            if result[j] is False:
+                result[j] = True
+                job[j] = arr[i][0]
+                break
+
+    return job
+
 
 def main():
-    jobs = []
-    num_jobs = int(input("Enter the number of jobs: "))
+    # Input jobs interactively
+    arr = []
+    while True:
+        job = input("Enter job name (or 'done' to finish): ")
+        if job.lower() == 'done':
+            break
+        deadline = int(input("Enter job deadline: "))
+        profit = int(input("Enter job profit: "))
+        arr.append((job, deadline, profit))
 
-    for i in range(1, num_jobs + 1):
-        print(f"\nJob {i}:")
-        processing_time = int(input("Enter processing time: "))
-        deadline = int(input("Enter deadline: "))
-        jobs.append({'id': i, 'processing_time': processing_time, 'deadline': deadline})
+    # Input number of time slots
+    t = int(input("Enter the number of time slots: "))
 
-    total_lateness = schedule_jobs(jobs)
+    # Get the maximum profit job sequence
+    job_sequence = max_profit_job_sequence(arr, t)
 
-    print("\nScheduled Jobs:")
-    for job in jobs:
-        print(f"Job {job['id']}: Processing Time = {job['processing_time']}, Deadline = {job['deadline']}")
+    # Print the maximum profit job sequence
+    print("Following is the maximum profit sequence of Jobs:")
+    print(job_sequence)
 
-    print("\nTotal lateness:", total_lateness)
 
-# Call the main function to start the program
 if __name__ == "__main__":
     main()
