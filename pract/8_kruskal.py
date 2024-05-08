@@ -1,72 +1,109 @@
+# Class to represent a graph
 class Graph:
+
     def __init__(self, vertices):
         self.V = vertices
         self.graph = []
 
-    def add_edge(self, u, v, weight):
-        self.graph.append((u, v, weight))
+    # Function to add an edge to graph
+    def addEdge(self, u, v, w):
+        self.graph.append([u, v, w])
 
-    def find_parent(self, parent, i):
-        if parent[i] == i:
-            return i
-        return self.find_parent(parent, parent[i])
+    # A utility function to find set of an element i
+    # (truly uses path compression technique)
+    def find(self, parent, i):
+        if parent[i] != i:
 
+            # Reassignment of node's parent
+            # to root node as
+            # path compression requires
+            parent[i] = self.find(parent, parent[i])
+        return parent[i]
+
+    # A function that does union of two sets of x and y
+    # (uses union by rank)
     def union(self, parent, rank, x, y):
-        x_root = self.find_parent(parent, x)
-        y_root = self.find_parent(parent, y)
 
-        if rank[x_root] < rank[y_root]:
-            parent[x_root] = y_root
-        elif rank[x_root] > rank[y_root]:
-            parent[y_root] = x_root
+        # Attach smaller rank tree under root of
+        # high rank tree (Union by Rank)
+        if rank[x] < rank[y]:
+            parent[x] = y
+        elif rank[x] > rank[y]:
+            parent[y] = x
+
+        # If ranks are same, then make one as root
+        # and increment its rank by one
         else:
-            parent[y_root] = x_root
-            rank[x_root] += 1
+            parent[y] = x
+            rank[x] += 1
 
-    def kruskal_mst(self):
+    # The main function to construct MST
+    # using Kruskal's algorithm
+    def KruskalMST(self):
+
+        # This will store the resultant MST
         result = []
-        parent = [i for i in range(self.V)]
-        rank = [0] * self.V
 
-        # Sort all edges by weight
-        self.graph = sorted(self.graph, key=lambda item: item[2])
+        # An index variable, used for sorted edges
+        i = 0
 
-        i = 0  # Index for sorted edges
-        e = 0  # Index for result[]
+        # An index variable, used for result[]
+        e = 0
 
-        while e < self.V - 1 and i < len(self.graph):
-            u, v, weight = self.graph[i]
-            i += 1
-            x = self.find_parent(parent, u)
-            y = self.find_parent(parent, v)
+        # Sort all the edges in
+        # non-decreasing order of their
+        # weight
+        self.graph = sorted(self.graph,
+                            key=lambda item: item[2])
 
+        parent = []
+        rank = []
+
+        # Create V subsets with single elements
+        for node in range(self.V):
+            parent.append(node)
+            rank.append(0)
+
+        # Number of edges to be taken is less than to V-1
+        while e < self.V - 1:
+
+            # Pick the smallest edge and increment
+            # the index for next iteration
+            u, v, w = self.graph[i]
+            i = i + 1
+            x = self.find(parent, u)
+            y = self.find(parent, v)
+
+            # If including this edge doesn't
+            # cause cycle, then include it in result
+            # and increment the index of result
+            # for next edge
             if x != y:
-                e += 1
-                result.append((u, v, weight))
+                e = e + 1
+                result.append([u, v, w])
                 self.union(parent, rank, x, y)
+            # Else discard the edge
 
-        mst_cost = sum(weight for _, _, weight in result)
-        return mst_cost
-
-
-def add_edges(graph):
-    while True:
-        u = int(input("Enter vertex u (-1 to finish): "))
-        if u == -1:
-            break
-        v = int(input("Enter vertex v: "))
-        weight = int(input("Enter weight: "))
-        graph.add_edge(u, v, weight)
+        minimumCost = 0
+        print("Edges in the constructed MST")
+        for u, v, weight in result:
+            minimumCost += weight
+            print("%d -- %d == %d" % (u, v, weight))
+        print("Minimum Spanning Tree", minimumCost)
 
 
-def main():
+def get_input():
     num_vertices = int(input("Enter the number of vertices: "))
     g = Graph(num_vertices)
-    add_edges(g)
+    num_edges = int(input("Enter the number of edges: "))
+    print("Enter edges in the format 'source destination weight':")
+    for _ in range(num_edges):
+        u, v, w = map(int, input().split())
+        g.addEdge(u, v, w)
+    return g
 
-    mst_cost = g.kruskal_mst()
-    print("Minimum Spanning Tree Cost:", mst_cost)
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    print("Kruskal's Algorithm for Minimum Spanning Tree")
+    g = get_input()
+    g.KruskalMST()
